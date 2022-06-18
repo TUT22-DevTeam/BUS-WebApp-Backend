@@ -35,8 +35,6 @@ now = datetime.now()
 print(now)
 now = now.replace(minute=0,second=0,microsecond=0)
 print(now)
-now-=timedelta(hours=16)
-print(now)
 for i in range(len(result)):
     if now < result[i]["date"] < now+timedelta(hours=5):
         now_list.append(result[i])
