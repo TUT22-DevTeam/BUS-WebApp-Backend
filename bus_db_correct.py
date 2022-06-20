@@ -52,9 +52,9 @@ for i in range(len(hachioji_list)):
         if comparison_variable<= hachioji_list[i]["date"] < comparison_variable+timedelta(minutes=10):
             json_list_h[int(j/6)][j%6]+=1 
         comparison_variable+=timedelta(minutes=10)
-with open('minamino.json', 'w') as f:
+with open('/usr/share/nginx/html/minamino.json', 'w') as f:
     json.dump(json_list_m, f, ensure_ascii=False, indent=4)
-with open('hachioji.json', 'w') as f:
+with open('/usr/share/nginx/html/hachioji.json', 'w') as f:
     json.dump(json_list_h, f, ensure_ascii=False, indent=4)  
 # 接続を切断
 cursor.close()
