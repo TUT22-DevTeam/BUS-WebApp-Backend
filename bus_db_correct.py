@@ -49,7 +49,7 @@ for i in range(len(minamino_list)):
 for i in range(len(hachioji_list)):
     comparison_variable = now
     for j in range(36):
-        if comparison_variable<= _list[i]["date"] < comparison_variable+timedelta(minutes=10):
+        if comparison_variable<= hachioji_list[i]["date"] < comparison_variable+timedelta(minutes=10):
             json_list_h[int(j/6)][j%6]+=1 
         comparison_variable+=timedelta(minutes=10)
 with open('minamino.json', 'w') as f:
