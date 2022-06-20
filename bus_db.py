@@ -26,7 +26,7 @@ class json_data(BaseModel):
     hours: str
     minutes:str
     station:str
-@app.post("/station/{station}")
+@app.t("/station/{station}")
 def return_data(station):
     connection = pymysql.connect(host='localhost',
                                  user='root',
