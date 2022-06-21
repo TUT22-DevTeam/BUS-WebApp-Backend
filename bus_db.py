@@ -40,7 +40,7 @@ def return_data(station):
     now = datetime.now()
     now = now.replace(minute=0,second=0,microsecond=0)
     for i in range(len(result)):
-        if now < result[i]["date"] < now+timedelta(hours=5):
+        if now <= result[i]["date"] < now+timedelta(hours=5):
             now_list.append(result[i])
     for i in range(len(now_list)):
         if now_list[i]["station"] ==station:
