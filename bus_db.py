@@ -28,10 +28,16 @@ class json_data(BaseModel):
     station:str
 @app.t("/station/{station}")
 def return_data(station):
-    connection = pymysql.connect(host='localhost',
-                                 user='root',
-                                 password='linuxclub!',
-                                 database='bus_db',
+    with open("setting.json",encoding="utf-8") as j:
+     jsn = json.load(j)
+     host_name = jsn["database"]["host"]
+     user_name = jsn["database"]["user"]
+     user_pass = jsn["database"]["password"]
+     use_database= jsn["database"]["database"]
+    connection = pymysql.connect(host=host_name,
+                                 user=user_name,
+                                 password=user_pass,
+                                 database=use_database,
                                  cursorclass=pymysql.cursors.DictCursor)
     cursor = connection.cursor()
     sql = "SELECT * FROM  passenger ORDER BY date"
