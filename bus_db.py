@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from datetime import datetime, date, time,timedelta
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 extract_from_staion=[]
 now_list = []
 json_list=[
@@ -79,4 +81,25 @@ def insert_json(data:json_data):
     cursor.close()
     connection.close()
     return("201")
+@app.post("/train_info/")
+def train_delay():
+    info_list=[[0,0],[0,0]]
+    url_list=[31,38]
+    options = Options()
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(options=options)
+    for i in range(len(url_list)):
+        driver.get("https://transit.yahoo.co.jp/diainfo/"+url_list[i]+"/0")
+        if len(driver.find_elements_by_css_selector(".trouble")) > 0:
+            info_list[i][0]="True"
+            info_list[i][1]=driver.find_elements_by_css_selector(".trouble")[0].text
+        elif len(driver.find_elements_by_css_selector(".normal")) > 0:
+            info_list[i][0]="False"
+            info_list[i][1]="正常に運行中"
+        else:
+            info_list[i][0]="False"
+            info_list[i][0]="取得に失敗"
+    driver.quit()
+    print(info_list)
+    return(info_list)
 
