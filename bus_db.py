@@ -81,7 +81,7 @@ def insert_json(data:json_data):
     cursor.close()
     connection.close()
     return("201")
-@app.post("/train_info/")
+@app.get("/train_info/")
 def train_delay():
     info_list=[[0,0],[0,0]]
     url_list=[31,38]
@@ -97,7 +97,7 @@ def train_delay():
             info_list[i][0]="False"
             info_list[i][1]="正常に運行中"
         else:
-            info_list[i][0]="False"
+            info_list[i][0]="Error"
             info_list[i][0]="取得に失敗"
     driver.quit()
     print(info_list)
