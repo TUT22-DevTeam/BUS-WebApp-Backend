@@ -84,7 +84,7 @@ def insert_json(data:json_data):
 @app.get("/train_info/")
 def train_delay():
     info_list=[[0,0],[0,0]]
-    url_list=[31,38]
+    url_list=["31","38"]
     options = Options()
     options.add_argument('--headless')
     driver = webdriver.Chrome(options=options)
