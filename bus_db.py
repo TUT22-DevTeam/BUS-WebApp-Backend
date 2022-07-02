@@ -3,8 +3,6 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from datetime import datetime, date, time,timedelta
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 extract_from_staion=[]
 now_list = []
 json_list=[
@@ -28,7 +26,7 @@ class json_data(BaseModel):
     hours: str
     minutes:str
     station:str
-@app.t("/station/{station}")
+@app.post("/station/{station}")
 def return_data(station):
     with open("setting.json",encoding="utf-8") as j:
      jsn = json.load(j)
