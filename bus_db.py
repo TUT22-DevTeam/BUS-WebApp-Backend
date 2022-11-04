@@ -3,15 +3,25 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from datetime import datetime, date, time,timedelta
-extract_from_staion=[]#指定された駅に該当するデータのリスト
 now_list = []#現在の時間から5時間までの10分ごとの乗車人数と駅のリストを格納するリスト
+station_list = ["Hachioji","Minamino"]#利用される路線のリスト
 json_list=[#最終的にフロントエンドに返すリスト
-     [0,0,0,0,0,0], 
-     [0,0,0,0,0,0], 
-     [0,0,0,0,0,0], 
-     [0,0,0,0,0,0], 
-     [0,0,0,0,0,0], 
-     [0,0,0,0,0,0] 
+     [
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0]
+     ],
+     [
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0], 
+          [0,0,0,0,0,0]
+     ]
    ]
 app = FastAPI()
 app.add_middleware(#CORSの設定を行っている
@@ -26,7 +36,7 @@ class json_data(BaseModel):#フロントエンドから送信の際に送られ�
     hours: str
     minutes:str
     station:str
-@app.post("/station/{station}")#駅ごとの情報を要求されたとき
+@app.get("/show_data/")#駅ごとの情報を要求されたとき
 def return_data(station):
     with open("setting.json",encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
      jsn = json.load(j)
@@ -47,19 +57,18 @@ def return_data(station):
     for i in range(len(result)):
         if now <= result[i]["date"] < now+timedelta(hours=5):#現在時刻から5時間以内ならnow_listに追加
             now_list.append(result[i])
-    for i in range(len(now_list)):#もしnow_listの中の配列のデータと指定された駅名が同じなら
-        if now_list[i]["station"] ==station:
-            extract_from_staion.append(now_list[i])#別の配列に該当データを入れる
-    for i in range(len(extract_from_staion)):#駅を条件に絞り込んだリストの長さ分
+    for i in range(len(now_list)):#データベースから取得したデータの長さ分
         comparison_variable = now#基準の時間を設定する
         for j in range(36):#1時間のうち10分毎、かつ6時間分行うため
-            if comparison_variable<= extract_from_staion[i]["date"] < comparison_variable+timedelta(minutes=10):#もし該当データが現在時刻から10分以内なら
-                json_list[int(j/6)][j%6]+=1 #該当する時間の数値を増やす
+            if comparison_variable<= extract_from_staion[i]["date"] < comparison_variable+timedelta(minutes=10) and now_list[i]["station"] == "hachioji":#もし該当データが現在時刻から10分以内かつ八王子発なら
+                json_list[0][int(j/6)][j%6]+=1 #該当する時間の数値を増やす
+            elif comparison_variable<= extract_from_staion[i]["date"] < comparison_variable+timedelta(minutes=10) and now_list[i]["station"] == "minamino":#もし該当データが現在時刻から10分以内かつみなみ野なら
+                json_list[1][int(j/6)][j%6]+=1 #該当する時間の数値を増やす
             comparison_variable+=timedelta(minutes=10)#基準時間を10分増やす  
     cursor.close()
     connection.close()
     return(json_list)
-@app.post("/data/")#データの追加
+@app.post("/add_data/")#データの追加
 def insert_json(data:json_data):
     send_date = data.date+":"+data.hours+":"+data.minutes#オブジェクトから時間を取得
     with open("setting.json",encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
