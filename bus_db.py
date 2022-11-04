@@ -3,9 +3,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from datetime import datetime, date, time,timedelta
-extract_from_staion=[]
-now_list = []
-json_list=[
+extract_from_staion=[]#指定された駅に該当するデータのリスト
+now_list = []#現在の時間から5時間までの10分ごとの乗車人数と駅のリストを格納するリスト
+json_list=[#最終的にフロントエンドに返すリスト
      [0,0,0,0,0,0], 
      [0,0,0,0,0,0], 
      [0,0,0,0,0,0], 
@@ -14,63 +14,68 @@ json_list=[
      [0,0,0,0,0,0] 
    ]
 app = FastAPI()
-app.add_middleware(
+app.add_middleware(#CORSの設定を行っている
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,   # 追記により追加
-    allow_methods=["*"],      # 追記により追加
-    allow_headers=["*"]       # 追記により追加
+    allow_credentials=True,   
+    allow_methods=["*"],      
+    allow_headers=["*"]       
 )
-class json_data(BaseModel):
+class json_data(BaseModel):#フロントエンドから送信の際に送られるオブジェクトの指定
     date: str
     hours: str
     minutes:str
     station:str
-@app.post("/station/{station}")
+@app.post("/station/{station}")#駅ごとの情報を要求されたとき
 def return_data(station):
-    with open("setting.json",encoding="utf-8") as j:
+    with open("setting.json",encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
      jsn = json.load(j)
      host_name = jsn["database"]["host"]
      user_name = jsn["database"]["user"]
      user_pass = jsn["database"]["password"]
      use_database= jsn["database"]["database"]
-    connection = pymysql.connect(host=host_name,
+    connection = pymysql.connect(host=host_name,#設定をもとに接続する
                                  user=user_name,
                                  password=user_pass,
                                  database=use_database,
                                  cursorclass=pymysql.cursors.DictCursor)
     cursor = connection.cursor()
-    sql = "SELECT * FROM  passenger ORDER BY date"
+    sql = "SELECT * FROM  passenger ORDER BY date"#搭乗人数のデータを日付をもとにした昇順で絞りこむ
     cursor.execute(sql)
-    result = cursor.fetchall()
-    now = datetime.now()
-    now = now.replace(minute=0,second=0,microsecond=0)
+    result = cursor.fetchall()#データをすべて取得
+    now = datetime.now().replace(minute=0,second=0,microsecond=0)#現在の時間を時間単位で取得
     for i in range(len(result)):
-        if now <= result[i]["date"] < now+timedelta(hours=5):
+        if now <= result[i]["date"] < now+timedelta(hours=5):#現在時刻から5時間以内ならnow_listに追加
             now_list.append(result[i])
-    for i in range(len(now_list)):
+    for i in range(len(now_list)):#もしnow_listの中の配列のデータと指定された駅名が同じなら
         if now_list[i]["station"] ==station:
-            extract_from_staion.append(now_list[i])
-    for i in range(len(extract_from_staion)):
-        comparison_variable = now
-        for j in range(36):
-            if comparison_variable<= extract_from_staion[i]["date"] < comparison_variable+timedelta(minutes=10):
-                json_list[int(j/6)][j%6]+=1 
-            comparison_variable+=timedelta(minutes=10)  
+            extract_from_staion.append(now_list[i])#別の配列に該当データを入れる
+    for i in range(len(extract_from_staion)):#駅を条件に絞り込んだリストの長さ分
+        comparison_variable = now#基準の時間を設定する
+        for j in range(36):#1時間のうち10分毎、かつ6時間分行うため
+            if comparison_variable<= extract_from_staion[i]["date"] < comparison_variable+timedelta(minutes=10):#もし該当データが現在時刻から10分以内なら
+                json_list[int(j/6)][j%6]+=1 #該当する時間の数値を増やす
+            comparison_variable+=timedelta(minutes=10)#基準時間を10分増やす  
     cursor.close()
     connection.close()
     return(json_list)
-@app.post("/data/")
+@app.post("/data/")#データの追加
 def insert_json(data:json_data):
-    send_date = data.date+":"+data.hours+":"+data.minutes
-    connection = pymysql.connect(host='localhost',
-                                 user='root',
-                                 password='linuxclub!',
-                                 database='bus_db',
+    send_date = data.date+":"+data.hours+":"+data.minutes#オブジェクトから時間を取得
+    with open("setting.json",encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
+     jsn = json.load(j)
+     host_name = jsn["database"]["host"]
+     user_name = jsn["database"]["user"]
+     user_pass = jsn["database"]["password"]
+     use_database= jsn["database"]["database"]
+    connection = pymysql.connect(host=host_name,#設定をもとに接続する
+                                 user=user_name,
+                                 password=user_pass,
+                                 database=use_database,
                                  cursorclass=pymysql.cursors.DictCursor)
-    cursor = connection.cursor()        # レコードを挿入
-    sql = "INSERT INTO `passenger` (`date`,`station`) VALUES (%s,%s)"
-    cursor.execute(sql, (send_date,data.station))
+    cursor = connection.cursor()
+    sql = "INSERT INTO `passenger` (`date`,`station`) VALUES (%s,%s)"#記録の追加
+    cursor.execute(sql, (send_date,data.station))#処理の実行
  
     # コミットしてトランザクション実行
     connection.commit()
@@ -79,9 +84,9 @@ def insert_json(data:json_data):
     cursor.close()
     connection.close()
     return("201")
-@app.get("/train_info/")
+@app.get("/train_info/")#使用される鉄道の遅延情報の取得
 def train_delay():
-    with open("train_delay.json") as f:
+    with open("train_delay.json") as f:#jsonで取得したデータを返却する
         info_list = json.load(f)
         print(info_list)
     print(info_list)
