@@ -1,0 +1,7 @@
+PyMySQL
+fastapi
+pydantic
+starlette
+DateTime
+selenium
+uvicorn
