@@ -1,11 +1,37 @@
 version: "3.0"
 
 services:
-  api:
-    container_name: "api"
-    volumes:
-      - ./app :/app
+  bus-webapp-backend:
     build: .
     ports:
-      - 8080:8080
-      
+      - "8080:8080"
+    container_name: "bus-webapp-backend"
+    volumes:
+      - ./app:/app
+    networks:
+      - backend-net
+
+  bus-webapp-db:
+    image: mariadb:latest
+    container_name: "bus-webapp-db"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: bus_webapp
+      MYSQL_ROOT_PASSWORD: /run/secrets/db_pass
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/conf.d:/etc/mysql/conf.d
+      - ./db/log:/var/log/mysql
+    networks:
+      - backend-net
+    secrets:
+      - db_pass
+
+networks:
+  backend-net:
+    driver: bridge
+
+secrets:
+  db_pass:
+    file: ./config/db_pass

@@ -3,6 +3,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from datetime import datetime, date, time,timedelta
+
+credential_file = "../config/db_connection.json"
+
 now_list = []#現在の時間から5時間までの10分ごとの乗車人数と駅のリストを格納するリスト
 station_list = ["Hachioji","Minamino"]#利用される路線のリスト
 json_list=[#最終的にフロントエンドに返すリスト
@@ -23,6 +26,7 @@ json_list=[#最終的にフロントエンドに返すリスト
           [0,0,0,0,0,0]
      ]
    ]
+
 app = FastAPI()
 app.add_middleware(#CORSの設定を行っている
     CORSMiddleware,
@@ -31,14 +35,16 @@ app.add_middleware(#CORSの設定を行っている
     allow_methods=["*"],      
     allow_headers=["*"]       
 )
+
 class json_data(BaseModel):#フロントエンドから送信の際に送られるオブジェクトの指定
     date: str
     hours: str
     minutes:str
     station:str
+
 @app.get("/show_data/")#駅ごとの情報を要求されたとき
 def return_data(station):
-    with open("setting.json",encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
+    with open(credential_file,encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
      jsn = json.load(j)
      host_name = jsn["database"]["host"]
      user_name = jsn["database"]["user"]
@@ -68,10 +74,12 @@ def return_data(station):
     cursor.close()
     connection.close()
     return(json_list)
+
+
 @app.post("/add_data/")#データの追加
 def insert_json(data:json_data):
     send_date = data.date+":"+data.hours+":"+data.minutes#オブジェクトから時間を取得
-    with open("setting.json",encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
+    with open(credential_file,encoding="utf-8") as j:#サーバー情報を入れたjsonファイルから設定を読み込む
      jsn = json.load(j)
      host_name = jsn["database"]["host"]
      user_name = jsn["database"]["user"]
@@ -93,6 +101,7 @@ def insert_json(data:json_data):
     cursor.close()
     connection.close()
     return("201")
+
 @app.get("/train_info/")#使用される鉄道の遅延情報の取得
 def train_delay():
     with open("train_delay.json") as f:#jsonで取得したデータを返却する
