@@ -1,8 +1,0 @@
-{
-    "database": {
-        "host": "mariadb",
-        "user": "root",
-        "password":"Y7vmJKcdQV2cBfM",
-        "database":"bus_webapp"
-    }
-}

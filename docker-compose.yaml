@@ -1,5 +1,4 @@
-version: "3.0"
-
+version: "3.9"
 services:
   bus-webapp-backend:
     build: .
@@ -9,7 +8,7 @@ services:
     volumes:
       - ./app:/app
     networks:
-      - backend-net
+      - br0
 
   bus-webapp-db:
     image: mariadb:latest
@@ -18,20 +17,20 @@ services:
       - "3306:3306"
     environment:
       MYSQL_DATABASE: bus_webapp
-      MYSQL_ROOT_PASSWORD: /run/secrets/db_pass
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_pass
     volumes:
       - ./db/data:/var/lib/mysql
-      - ./db/conf.d:/etc/mysql/conf.d
-      - ./db/log:/var/log/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
-      - backend-net
+      - br0
     secrets:
       - db_pass
 
 networks:
-  backend-net:
+  br0:
     driver: bridge
 
 secrets:
   db_pass:
-    file: ./config/db_pass
+    file: ./secrets/db_pass

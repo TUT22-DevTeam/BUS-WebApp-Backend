@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from datetime import datetime, date, time,timedelta
 
-credential_file = "../config/db_connection.json"
+credential_file = "./db_connection.json"
 
 now_list = []#現在の時間から5時間までの10分ごとの乗車人数と駅のリストを格納するリスト
 station_list = ["Hachioji","Minamino"]#利用される路線のリスト
