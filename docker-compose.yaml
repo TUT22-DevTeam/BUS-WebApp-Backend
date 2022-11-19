@@ -7,6 +7,7 @@ services:
     container_name: "bus-webapp-backend"
     volumes:
       - ./app:/app
+      - ./secrets/db_connection.json /secrets/db_connection.json
     networks:
       - br0
 
